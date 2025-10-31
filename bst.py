@@ -3,6 +3,7 @@ import unittest
 from typing import *
 from dataclasses import dataclass
 sys.setrecursionlimit(10**6)
+import random
 
 
 BinTree : TypeAlias = Optional["Node"]
@@ -13,10 +14,15 @@ class Node:
     left : BinTree
     right : BinTree
 
+    def __str__(self):
+        return f"v: {self.val}, l: ({self.left}), r: ({self.right})"
+
 @dataclass(frozen=True)
 class BinarySearchTree:
     comes_before : Callable[[Any, Any], bool]
     tree : BinTree
+    def __str__(self):
+        return str(self.tree)
 
 # Returns True if the given binary search tree is empty
 def is_empty( input_tree : BinarySearchTree) -> bool:
@@ -60,37 +66,63 @@ def lookup( input_tree : BinarySearchTree, val : Any) -> bool:
     return lookup_helper(input_tree.tree, input_tree.comes_before, val)
 
 
-
-
-
-def largest_value( input : BinTree, comes_before : Callable[[Any, Any], bool]) -> Any:
-    pass
-
-def delete_largest( input : BinTree) -> BinTree:
-    pass
-
-def delete_helper( input : BinTree, comes_before : Callable[[Any,Any], bool], val : Any) -> BinarySearchTree:
+# finds the largest value in a given tree
+def largest_value( input : BinTree) -> Any:
     match input:
         case None:
-            return None # should never happen
+            return None
+        case Node(val = v, right = r):
+            if r is None:
+                return v
+            return largest_value(r) 
+
+# deletes the largest value (bottom right) from a given tree 
+def delete_largest( input : BinTree) -> BinTree:
+    match input:
+        case None:
+            return None
+        case Node(v, l, r):
+            if r is None:
+                return l
+            return Node(v,l, delete_largest(r))
+
+# Main helper function for delete function
+def delete_helper( input : BinTree, comes_before : Callable[[Any,Any], bool], val : Any) -> BinTree:
+    match input:
+        case None:
+            return None
         case Node(v, l, r):
             if comes_before(val, v):
-                return delete_helper(l, comes_before, val)
+                print("left")
+                return Node(v, delete_helper(l, comes_before, val), r)
             if comes_before(v, val):
-                return delete_helper(r, comes_before, val)
+                print("right")
+                return Node(v, l, delete_helper(r, comes_before, val))
             else:
-                left_max : Any = largest_value(input, comes_before)
-                new_left : BinTree = delete_largest(input)
-                return BinarySearchTree(comes_before, new_left)
+                print("equal")
+                left_max : Any = largest_value(l)
+                print(left_max)
+                new_left : BinTree = delete_largest(l)
+                print(new_left)
+                return Node(left_max, new_left, r)
 
+# find the height of a given tree
+def height( input : BinTree) -> int:
+    match input:
+        case None:
+            return 0
+        case Node(left=l, right=r):
+            return max(1 + height(l), 1 + height(r))
+        
+
+def random_tree(n : int) -> BinarySearchTree:
+    a : BinarySearchTree = BinarySearchTree(lambda a, b: a < b, None)
+    for i in range(n):
+        a = insert(a, random.random())
 
 
 # delete an instance of the given value from the given tree
 def delete( input_tree : BinarySearchTree, val : Any) -> BinarySearchTree:
     if not lookup(input_tree, val):
         return input_tree
-    return delete_helper(input_tree.tree, input_tree.comes_before, val)
-
-def ex_comes_before( a : int, b : int) -> bool:
-    return a < b
-
+    return BinarySearchTree(input_tree.comes_before, delete_helper(input_tree.tree, input_tree.comes_before, val))
