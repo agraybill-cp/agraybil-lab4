@@ -3,7 +3,6 @@ import unittest
 from typing import *
 from dataclasses import dataclass
 sys.setrecursionlimit(10**6)
-import random
 
 
 BinTree : TypeAlias = Optional["Node"]
@@ -106,19 +105,7 @@ def delete_helper( input : BinTree, comes_before : Callable[[Any,Any], bool], va
                 print(new_left)
                 return Node(left_max, new_left, r)
 
-# find the height of a given tree
-def height( input : BinTree) -> int:
-    match input:
-        case None:
-            return 0
-        case Node(left=l, right=r):
-            return max(1 + height(l), 1 + height(r))
-        
 
-def random_tree(n : int) -> BinarySearchTree:
-    a : BinarySearchTree = BinarySearchTree(lambda a, b: a < b, None)
-    for i in range(n):
-        a = insert(a, random.random())
 
 
 # delete an instance of the given value from the given tree
